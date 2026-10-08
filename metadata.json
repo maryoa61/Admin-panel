@@ -1,0 +1,6 @@
+{
+  "name": "ادمین هوشمند تلگرام",
+  "description": "سامانه مدیریت و ارسال خودکار و زمانبندی شده فال و پیام به کانال‌های تلگرام با تم مینیمال آبی",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
