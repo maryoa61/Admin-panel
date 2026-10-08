@@ -467,6 +467,11 @@ setInterval(async () => {
   }
 }, 30000); // Check every 30s
 
+// Direct route to serve the standalone single-file HTML
+app.get('/telegram-admin.html', (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, 'public', 'telegram-admin.html'));
+});
+
 // Mount Vite or serve static
 async function startServer() {
   if (process.env.NODE_ENV === 'production') {

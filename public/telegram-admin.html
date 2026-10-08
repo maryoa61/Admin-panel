@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ادمین هوشمند تلگرام (نسخه تک‌فایل Standalone HTML)</title>
+  <meta name="description" content="سامانه هوشمند و خودکار ارسال زمانبندی شده فال و محتوا به کانال تلگرام - بدون نیاز به نصب سرور">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Vazirmatn -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+    html.dark body {
+      background-color: #0b1329;
+      color: #e2e8f0;
+    }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f0f9ff; }
+    .dark ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #bae6fd; border-radius: 9999px; }
+    .dark ::-webkit-scrollbar-thumb { background: #1e3a5f; }
+    ::-webkit-scrollbar-thumb:hover { background: #7dd3fc; }
+  </style>
+</head>
+<body class="bg-gradient-to-b from-sky-50/60 via-slate-50 to-white dark:from-[#0b1329] dark:via-[#0e172e] dark:to-[#070c18] text-slate-800 dark:text-slate-100 min-h-screen flex flex-col">
+
+  <!-- Toast Alert -->
+  <div id="toast-container" class="fixed bottom-5 left-5 z-50 transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none">
+    <div id="toast-body" class="flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-xl text-xs sm:text-sm font-semibold border bg-sky-600 text-white border-sky-500">
+      <span id="toast-msg">پیام سیستم</span>
+      <button onclick="hideToast()" class="mr-2 hover:opacity-80 cursor-pointer">×</button>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="border-b border-sky-100 dark:border-slate-800/80 bg-white/85 dark:bg-[#0f172a]/85 backdrop-blur-md sticky top-0 z-30 shadow-xs transition-colors duration-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+        <!-- Logo & Title -->
+        <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
+          <div class="flex items-center gap-3">
+            <div class="relative">
+              <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20 ring-2 ring-sky-200/50 dark:ring-sky-500/30">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              </div>
+              <span id="header-status-dot" class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 bg-slate-300 dark:bg-slate-600" title="وضعیت ربات"></span>
+            </div>
+
+            <div>
+              <div class="flex items-center gap-2">
+                <h1 class="text-lg sm:text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
+                  ادمین هوشمند تلگرام
+                </h1>
+                <span class="bg-sky-100 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 text-xs px-2 py-0.5 rounded-full font-semibold border border-sky-200/60 dark:border-sky-800 hidden sm:inline-flex">
+                  نسخه مستقل HTML
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                سیستم ارسال خودکار و زمانبندی شده فال روزانه به کانال
+              </p>
+            </div>
+          </div>
+
+          <!-- Mobile Dark Toggle -->
+          <div class="sm:hidden flex items-center gap-2">
+            <button onclick="toggleDarkMode()" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800">
+              🌓
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Status & Actions -->
+        <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end flex-wrap">
+          <div class="hidden md:flex items-center gap-2 bg-sky-50/70 dark:bg-slate-800/80 border border-sky-100 dark:border-slate-700/80 px-3 py-1.5 rounded-xl text-xs text-slate-600 dark:text-slate-300">
+            <span class="text-slate-400">کانال هدف:</span>
+            <span id="header-channel-id" class="font-semibold text-sky-700 dark:text-sky-300 dir-ltr">@freeapiai</span>
+            <span class="w-1 h-1 rounded-full bg-sky-300 dark:bg-slate-600 mx-0.5"></span>
+            <span class="text-slate-400">زمانبندی‌های فعال:</span>
+            <span id="header-active-count" class="font-bold text-slate-700 dark:text-slate-200">۲</span>
+          </div>
+
+          <!-- Global Dark Mode Toggle -->
+          <button onclick="toggleDarkMode()" id="dark-mode-btn" class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-xs cursor-pointer">
+            <span id="dark-mode-icon">🌙</span>
+            <span id="dark-mode-text">حالت شب</span>
+          </button>
+
+          <!-- Instant Test Button -->
+          <button onclick="sendInstantTestPost()" id="header-test-btn" class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-xs bg-sky-600 hover:bg-sky-700 text-white cursor-pointer active:scale-95">
+            <span>🚀 ارسال تست آنی فال</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
+
+    <!-- Navigation Tabs Bar -->
+    <div class="bg-white dark:bg-[#131f37] p-1.5 rounded-2xl border border-sky-100 dark:border-slate-800 shadow-xs flex items-center justify-between overflow-x-auto scrollbar-none gap-1 transition-colors">
+      <div class="flex items-center gap-1 w-full sm:w-auto">
+        <button onclick="switchTab('setup')" id="tab-btn-setup" class="tab-btn px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap bg-sky-500 text-white shadow-xs">
+          ⚙️ اتصال ربات و کانال
+        </button>
+        <button onclick="switchTab('schedule')" id="tab-btn-schedule" class="tab-btn px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap text-slate-600 dark:text-slate-300 hover:bg-sky-50/70 dark:hover:bg-slate-800">
+          ⏰ زمانبندی ارسال فال
+        </button>
+        <button onclick="switchTab('preview')" id="tab-btn-preview" class="tab-btn px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap text-slate-600 dark:text-slate-300 hover:bg-sky-50/70 dark:hover:bg-slate-800">
+          🔮 پیش‌نمایش زنده پست
+        </button>
+        <button onclick="switchTab('logs')" id="tab-btn-logs" class="tab-btn px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap text-slate-600 dark:text-slate-300 hover:bg-sky-50/70 dark:hover:bg-slate-800">
+          📊 گزارش‌ها و تاریخچه
+        </button>
+        <button onclick="switchTab('python')" id="tab-btn-python" class="tab-btn px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap text-slate-600 dark:text-slate-300 hover:bg-sky-50/70 dark:hover:bg-slate-800">
+          🐍 کد پایتون (Pyrogram)
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 1: SETUP -->
+    <div id="tab-content-setup" class="space-y-6">
+      <div class="bg-white dark:bg-[#131f37] rounded-2xl border border-sky-100 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
+        <!-- Card Header -->
+        <div class="bg-gradient-to-r from-sky-50/70 via-blue-50/40 to-transparent dark:from-slate-800/60 dark:via-slate-800/20 dark:to-transparent p-5 sm:p-6 border-b border-sky-100 dark:border-slate-800">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold text-lg">
+                🔑
+              </div>
+              <div>
+                <h2 class="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">
+                  تنظیمات ربات و کانال تلگرام
+                </h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  اتصال مستقیم به Telegram Bot API بدون واسطه با بالاترین امنیت
+                </p>
+              </div>
+            </div>
+
+            <button onclick="toggleSetupGuide()" class="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 bg-sky-50 dark:bg-slate-800 px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer">
+              ❓ راهنمای ساخت ربات و توکن
+            </button>
+          </div>
+
+          <!-- Guide Accordion -->
+          <div id="setup-guide" class="hidden mt-4 pt-4 border-t border-sky-100/80 dark:border-slate-800 bg-white/60 dark:bg-slate-900/70 p-4 rounded-xl text-xs text-slate-600 dark:text-slate-300 space-y-2">
+            <p class="font-bold text-sky-800 dark:text-sky-300">📌 ۳ مرحله ساده برای راه‌اندازی:</p>
+            <ol class="list-decimal list-inside space-y-1 mr-1">
+              <li>به ربات <a href="https://t.me/BotFather" target="_blank" class="text-sky-600 underline font-semibold">@BotFather</a> در تلگرام پیام دهید و دستور <code>/newbot</code> را بفرستید.</li>
+              <li>توکن ارائه‌شده (HTTP API Token) را در کادر زیر وارد کرده و دکمه «تست توکن» را بزنید.</li>
+              <li>ربات را به کانال خود (مثلاً <span class="font-mono text-sky-600">@freeapiai</span>) برده و با دسترسی <b>ارسال پیام (Post Messages)</b> ادمین کنید.</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Form Body -->
+        <div class="p-5 sm:p-6 space-y-5">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- Bot Token -->
+            <div class="space-y-2">
+              <label class="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 block">
+                توکن ربات تلگرام (Bot Token) <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <input type="password" id="input-bot-token" placeholder="مثال: 7123456789:AAF_xxxxxxx..." class="w-full pl-24 pr-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-mono text-xs dir-ltr outline-none focus:border-sky-500" oninput="saveConfigFromInputs()">
+                <div class="absolute left-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  <button type="button" onclick="toggleTokenVisibility()" class="p-1 text-slate-400 hover:text-slate-600 text-xs">👁️</button>
+                  <button type="button" onclick="testBotToken()" id="btn-test-bot" class="px-2.5 py-1 text-xs font-semibold bg-sky-50 dark:bg-slate-800 text-sky-700 dark:text-sky-300 hover:bg-sky-100 rounded-lg border border-sky-200/60 dark:border-slate-700 cursor-pointer">تست توکن</button>
+                </div>
+              </div>
+              <p id="bot-status-text" class="text-xs text-slate-400 font-medium"></p>
+            </div>
+
+            <!-- Target Channel -->
+            <div class="space-y-2">
+              <label class="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 block">
+                آیدی کانال تلگرام (Target Channel) <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <input type="text" id="input-channel-id" value="@freeapiai" placeholder="@freeapiai یا -100xxxxxxxx" class="w-full pl-24 pr-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-mono text-xs dir-ltr outline-none focus:border-sky-500" oninput="saveConfigFromInputs()">
+                <div class="absolute left-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  <button type="button" onclick="testChannelPermissions()" id="btn-test-channel" class="px-2.5 py-1 text-xs font-semibold bg-sky-50 dark:bg-slate-800 text-sky-700 dark:text-sky-300 hover:bg-sky-100 rounded-lg border border-sky-200/60 dark:border-slate-700 cursor-pointer">بررسی کانال</button>
+                </div>
+              </div>
+              <p id="channel-status-text" class="text-xs text-slate-400 font-medium"></p>
+            </div>
+          </div>
+
+          <!-- Signature and TimeZone -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div class="space-y-1.5">
+              <label class="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 block">
+                امضای انتهای هر فال (Footer Signature)
+              </label>
+              <input type="text" id="input-signature" value="@freeapiai" placeholder="@freeapiai" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-mono text-xs dir-ltr outline-none focus:border-sky-500" oninput="saveConfigFromInputs(); updatePreview();">
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 block">
+                منطقه زمانی پیش‌فرض سیستم (Time Zone)
+              </label>
+              <select id="select-timezone" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-xs outline-none" onchange="saveConfigFromInputs(); updateLiveClocks();">
+                <option value="Asia/Tehran">تهران (ایران) - UTC+3:30</option>
+                <option value="Asia/Dubai">دبی (امارات) - UTC+4:00</option>
+                <option value="Asia/Istanbul">استانبول (ترکیه) - UTC+3:00</option>
+                <option value="Asia/Kabul">کابل (افغانستان) - UTC+4:30</option>
+                <option value="UTC">ساعت جهانی (UTC) - UTC+0:00</option>
+                <option value="Europe/London">لندن (بریتانیا) - UTC+1:00</option>
+                <option value="Europe/Berlin">برلین / پاریس - UTC+2:00</option>
+                <option value="America/New_York">نیویورک (آمریکا) - UTC-4:00</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: SCHEDULE -->
+    <div id="tab-content-schedule" class="hidden space-y-6">
+      <div class="bg-white dark:bg-[#131f37] rounded-2xl border border-sky-100 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
+        <!-- Header -->
+        <div class="p-5 sm:p-6 border-b border-sky-100 dark:border-slate-800 bg-gradient-to-r from-sky-50/70 via-blue-50/40 to-transparent dark:from-slate-800/60 dark:via-slate-800/20 dark:to-transparent flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold text-lg">
+              ⏰
+            </div>
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">
+                زمانبندی پیشرفته ارسال خودکار
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                تکرار روزانه، هفتگی، ماهانه و تاریخ آینده با اجرای در پس‌زمینه
+              </p>
+            </div>
+          </div>
+
+          <button onclick="toggleAddScheduleForm()" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-sky-600 hover:bg-sky-700 text-white shadow-xs cursor-pointer">
+            + تعریف زمانبندی جدید
+          </button>
+        </div>
+
+        <!-- Add Form -->
+        <div id="add-schedule-form" class="hidden p-5 bg-sky-50/50 dark:bg-slate-900/60 border-b border-sky-100 dark:border-slate-800 space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div>
+              <label class="text-xs font-semibold text-slate-700 dark:text-slate-200 block mb-1">عنوان برنامه</label>
+              <input type="text" id="sched-input-title" placeholder="مثال: فال حافظ آدینه" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs outline-none">
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-700 dark:text-slate-200 block mb-1">موضوع فال</label>
+              <select id="sched-input-category" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs outline-none">
+                <option value="all">🎲 ترکیبی (همه فال‌ها)</option>
+                <option value="hafez">📜 فال حافظ اصیل</option>
+                <option value="daily">☀️ فال روزانه و طالع</option>
+                <option value="energy">⚡ انرژی مثبت و شانس</option>
+                <option value="motivation">🔥 انگیزشی و اراده</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-700 dark:text-slate-200 block mb-1">نوع تکرار</label>
+              <select id="sched-input-type" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs outline-none" onchange="onRecurrenceTypeChange()">
+                <option value="daily">☀️ تکرار روزانه (Daily)</option>
+                <option value="weekly">📅 تکرار هفتگی (Weekly)</option>
+                <option value="monthly">🗓 تکرار ماهانه (Monthly)</option>
+                <option value="once">📌 تاریخ معین آینده (Once)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Time Input -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="text-xs font-semibold text-slate-700 dark:text-slate-200 block mb-1">ساعت ارسال (فرمت ۲۴ ساعته)</label>
+              <input type="time" id="sched-input-time" value="09:00" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono text-xs dir-ltr outline-none">
+            </div>
+            <div id="sched-date-container" class="hidden">
+              <label class="text-xs font-semibold text-slate-700 dark:text-slate-200 block mb-1">تاریخ مشخص آینده (YYYY-MM-DD)</label>
+              <input type="date" id="sched-input-date" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono text-xs dir-ltr outline-none">
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <button onclick="toggleAddScheduleForm()" class="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400">انصراف</button>
+            <button onclick="createNewSchedule()" class="px-4 py-2 text-xs font-semibold bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-xs cursor-pointer">ذخیره و فعال‌سازی</button>
+          </div>
+        </div>
+
+        <!-- Schedule Items List -->
+        <div id="schedule-list" class="divide-y divide-sky-50 dark:divide-slate-800/80">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: PREVIEW -->
+    <div id="tab-content-preview" class="hidden space-y-6">
+      <div class="bg-white dark:bg-[#131f37] rounded-2xl border border-sky-100 dark:border-slate-800 shadow-xs overflow-hidden flex flex-col transition-colors">
+        <!-- Preview Header -->
+        <div class="p-4 sm:p-5 border-b border-sky-100 dark:border-slate-800 bg-gradient-to-r from-sky-50/70 via-blue-50/40 to-transparent dark:from-slate-800/60 dark:via-slate-800/20 dark:to-transparent flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold">🔮</div>
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100">پیش‌نمایش زنده حباب تلگرام</h3>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">نمایش واقعی پیام در کانال با امضا و فرمت HTML</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="generateRandomFal()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-50 dark:bg-slate-800 text-sky-700 dark:text-sky-300 hover:bg-sky-100 border border-sky-200/60 dark:border-slate-700 cursor-pointer">
+              🎲 فال جدید
+            </button>
+            <button onclick="toggleBubbleTheme()" id="btn-bubble-theme" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
+              🌓 تغییر تم حباب
+            </button>
+          </div>
+        </div>
+
+        <!-- Telegram Bubble Body Canvas -->
+        <div id="bubble-canvas" class="p-4 sm:p-8 bg-[#e7ebf0] transition-colors flex justify-center">
+          <div id="bubble-card" class="max-w-md w-full bg-white text-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200/80 relative text-right">
+            <!-- Channel Header in Bubble -->
+            <div class="flex items-center justify-between pb-3 mb-3 border-b border-dashed border-slate-200">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-blue-600 text-white flex items-center justify-center font-bold text-xs">FA</div>
+                <span id="bubble-channel-title" class="text-xs font-bold text-sky-800">کانال @freeapiai</span>
+              </div>
+              <span class="text-[10px] text-slate-400">کانال تلگرام</span>
+            </div>
+
+            <!-- Content Area -->
+            <div id="bubble-content" class="space-y-3 text-xs sm:text-sm leading-relaxed">
+              <!-- Dynamically populated -->
+            </div>
+
+            <!-- Bubble Footer -->
+            <div class="mt-3 pt-2 flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-100">
+              <span>👁 1.4K</span>
+              <span id="bubble-time" class="font-mono dir-ltr">10:30</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview Actions -->
+        <div class="p-4 bg-sky-50/40 dark:bg-slate-900/60 border-t border-sky-100 dark:border-slate-800 flex items-center justify-between gap-3">
+          <button onclick="copyBubbleText()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 cursor-pointer">
+            📋 کپی متن پیام
+          </button>
+          <button onclick="sendInstantTestPost()" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-sky-600 hover:bg-sky-700 text-white cursor-pointer active:scale-95">
+            🚀 ارسال فوری این فال به کانال
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: LOGS -->
+    <div id="tab-content-logs" class="hidden space-y-6">
+      <div class="bg-white dark:bg-[#131f37] rounded-2xl border border-sky-100 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
+        <div class="p-4 sm:p-5 border-b border-sky-100 dark:border-slate-800 bg-gradient-to-r from-sky-50/70 via-blue-50/40 to-transparent dark:from-slate-800/60 dark:via-slate-800/20 dark:to-transparent flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold">📊</div>
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100">تاریخچه و لاگ ارسال‌ها</h3>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">ثبت وضعیت ارسال‌های تلگرام و پاسخ‌های سرور</p>
+            </div>
+          </div>
+          <button onclick="clearLogs()" class="text-xs text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 px-2.5 py-1.5 rounded-lg cursor-pointer">
+            🗑️ پاکسازی لاگ‌ها
+          </button>
+        </div>
+        <div id="logs-container" class="divide-y divide-sky-50 dark:divide-slate-800/80">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: PYTHON -->
+    <div id="tab-content-python" class="hidden space-y-6">
+      <div class="bg-white dark:bg-[#131f37] rounded-2xl border border-sky-100 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
+        <div class="p-5 sm:p-6 border-b border-sky-100 dark:border-slate-800 bg-gradient-to-r from-sky-50/70 via-blue-50/40 to-transparent dark:from-slate-800/60 dark:via-slate-800/20 dark:to-transparent flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">پروژه ماژولار پایتون (Pyrogram + Bot API)</h2>
+              <span class="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">۱۰۰٪ Async</span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">دریافت با Pyrogram و ارسال با Telegram Bot API</p>
+          </div>
+          <button onclick="copyPythonCode()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer">
+            📋 کپی کد کامل پایتون
+          </button>
+        </div>
+
+        <div class="p-4 bg-slate-950 text-slate-200 font-mono text-xs dir-ltr overflow-x-auto max-h-96">
+          <pre id="python-code-box"># بارگذاری خودکار اسکریپت...</pre>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-sky-100 dark:border-slate-800 bg-white/70 dark:bg-[#0f172a]/70 py-4 text-center text-xs text-slate-400 dark:text-slate-500 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <span><b>ادمین هوشمند تلگرام</b> — نسخه مستقل تک‌فایل Standalone HTML</span>
+      <span class="font-mono dir-ltr">Telegram Bot API Direct Client & Async Scheduler</span>
+    </div>
+  </footer>
+
+  <!-- SCRIPT ENGINE -->
+  <script>
+    /* =========================================================
+       1. DATABASE OF AUTHENTIC PERSIAN FAL (HAFEZ & DAILY)
+       ========================================================= */
+    const FAL_DATABASE = [
+      {
+        id: 'hafez-1',
+        title: 'فال حافظ: مژده وصل و گشایش',
+        category: 'hafez',
+        poem: [
+          'یوسف گمگشته بازآید به کنعان غم مخور',
+          'کلبه احزان شود روزی گلستان غم مخور',
+          'ای دل غمدیده حالت به شود دل بد مکن',
+          'وین سر شوریده بازآید به سامان غم مخور'
+        ],
+        interpretation: 'اندوه و دلتنگی شما به پایان خواهد رسید. گره از کار فرو‌بسته‌تان گشوده می‌شود و خبری مسرت‌بخش دریافت می‌کنید.',
+        advice: 'امید خود را از دست ندهید و صبور باشید. روزهای پربرکت و شادی پیش روی شماست.',
+        omen: 'نیک و فرخنده 🌟',
+        luckyColor: 'آبی فیروزه‌ای',
+        luckyNumber: 7
+      },
+      {
+        id: 'hafez-2',
+        title: 'فال حافظ: طالع خرم و پیروزی',
+        category: 'hafez',
+        poem: [
+          'دوش وقت سحر از غصه نجاتم دادند',
+          'واندر آن ظلمت شب آب حیاتم دادند',
+          'بیخود از شعشعه پرتو ذاتم کردند',
+          'باده از جام تجلی صفاتم دادند'
+        ],
+        interpretation: 'دوران سختی سپری شده و در آستانه تحولی شگرف در زندگی روحی و مادی خود هستید.',
+        advice: 'شکرگزار نعمت‌ها باشید و دست نیازمندان را بگیرید تا گشایش در کارهایتان پایدار بماند.',
+        omen: 'بسیار مبارک و درخشان ✨',
+        luckyColor: 'طلایی',
+        luckyNumber: 3
+      },
+      {
+        id: 'daily-1',
+        title: 'فال روزانه: جریان برکت کیهانی',
+        category: 'daily',
+        poem: null,
+        interpretation: 'امروز ارتعاشات کیهانی به نفع شما در حال چرخش است. تماسی غیرمنتظره مسیر مالی یا کاری جدیدی پیش روی شما می‌گذارد.',
+        advice: 'به ندای قلبتان اعتماد کنید و شجاعت رویارویی با فرصت‌های تازه را داشته باشید.',
+        omen: 'گشایش مالی و عاطفی 💎',
+        luckyColor: 'نیلی آرامش‌بخش',
+        luckyNumber: 5
+      },
+      {
+        id: 'energy-1',
+        title: 'فال انرژی کیهانی: جذب خواسته',
+        category: 'energy',
+        poem: null,
+        interpretation: 'فرکانس ذهنی شما در بالاترین سطح قرار دارد. هرآنچه را با احساس شکرگزاری طلب کنید، به سویتان کشیده خواهد شد.',
+        advice: 'عبارت تأکیدی امروز: «من شایسته بهترین اتفاقات و فراوانی بی‌کران هستم.»',
+        omen: 'جذب معجزه‌آسا 🧲',
+        luckyColor: 'آبی آسمانی',
+        luckyNumber: 11
+      },
+      {
+        id: 'motivation-1',
+        title: 'فال انگیزشی: قدرت اراده پولادین',
+        category: 'motivation',
+        poem: null,
+        interpretation: 'شما بسیار قوی‌تر از موانع هستید. موفقیت درست یک قدم بعد از نقطه‌ای است که ناامیدان تسلیم می‌شوند.',
+        advice: 'متمرکز بر اهداف بلندمدت بمانید و به هیاهوی اطراف توجه نکنید.',
+        omen: 'فتح قله‌های بلند 🏔️',
+        luckyColor: 'سورمه‌ای پرقدرت',
+        luckyNumber: 10
+      }
+    ];
+
+    /* =========================================================
+       2. STATE & STORAGE
+       ========================================================= */
+    let currentConfig = {
+      botToken: localStorage.getItem('tg_bot_token') || '',
+      channelId: localStorage.getItem('tg_channel_id') || '@freeapiai',
+      signature: localStorage.getItem('tg_signature') || '@freeapiai',
+      timeZone: localStorage.getItem('tg_timezone') || 'Asia/Tehran',
+    };
+
+    let schedules = JSON.parse(localStorage.getItem('tg_schedules') || 'null') || [
+      { id: 's1', title: 'فال صبحگاهی', type: 'daily', time: '08:30', category: 'all', isActive: true },
+      { id: 's2', title: 'فال حافظ شبانه', type: 'daily', time: '21:00', category: 'hafez', isActive: true }
+    ];
+
+    let logs = JSON.parse(localStorage.getItem('tg_logs') || '[]');
+    let currentFal = FAL_DATABASE[0];
+    let bubbleDark = false;
+
+    /* =========================================================
+       3. TELEGRAM BOT API CLIENT
+       ========================================================= */
+    async function callTelegram(method, payload = {}) {
+      const token = currentConfig.botToken.trim();
+      if (!token) throw new Error('لطفاً توکن ربات تلگرام را وارد کنید.');
+
+      const url = `https://api.telegram.org/bot${token}/${method}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      return data;
+    }
+
+    async function testBotToken() {
+      const btn = document.getElementById('btn-test-bot');
+      const statusText = document.getElementById('bot-status-text');
+      btn.innerText = 'در حال تست...';
+      try {
+        const res = await callTelegram('getMe');
+        if (res.ok) {
+          statusText.innerHTML = `✅ متصل شد: <b>@${res.result.username}</b> (${res.result.first_name})`;
+          statusText.className = 'text-xs text-emerald-600 font-semibold';
+          document.getElementById('header-status-dot').className = 'absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white bg-emerald-500';
+          showToast(`ربات @${res.result.username} با موفقیت تایید شد.`);
+        } else {
+          throw new Error(res.description || 'توکن نامعتبر است');
+        }
+      } catch (err) {
+        statusText.innerText = `❌ خطا: ${err.message}`;
+        statusText.className = 'text-xs text-rose-500 font-medium';
+        showToast(err.message, 'error');
+      } finally {
+        btn.innerText = 'تست توکن';
+      }
+    }
+
+    async function testChannelPermissions() {
+      const btn = document.getElementById('btn-test-channel');
+      const statusText = document.getElementById('channel-status-text');
+      btn.innerText = 'در حال بررسی...';
+      try {
+        let channel = currentConfig.channelId.trim();
+        if (!channel.startsWith('@') && !channel.startsWith('-100')) channel = `@${channel}`;
+        const res = await callTelegram('getChat', { chat_id: channel });
+        if (res.ok) {
+          statusText.innerHTML = `✅ کانال تایید شد: <b>${res.result.title || channel}</b>`;
+          statusText.className = 'text-xs text-emerald-600 font-semibold';
+          showToast(`کانال ${channel} تایید شد.`);
+        } else {
+          throw new Error(res.description || 'عدم دسترسی به کانال');
+        }
+      } catch (err) {
+        statusText.innerText = `❌ خطا: ${err.message}`;
+        statusText.className = 'text-xs text-rose-500 font-medium';
+        showToast(err.message, 'error');
+      } finally {
+        btn.innerText = 'بررسی کانال';
+      }
+    }
+
+    function formatFalPost(fal, sig) {
+      let post = `✨ <b>${fal.title}</b> ✨\n\n`;
+      if (fal.poem) {
+        post += `📜 <i>«شعر و غزل»</i>\n`;
+        for (let i = 0; i < fal.poem.length; i += 2) {
+          post += `🔹 <i>${fal.poem[i]}</i>\n🔹 <i>${fal.poem[i+1] || ''}</i>\n\n`;
+        }
+      }
+      post += `🔮 <b>تعبیر و طالع:</b>\n${fal.interpretation}\n\n`;
+      post += `💡 <b>پند و توصیه:</b>\n${fal.advice}\n\n`;
+      post += `🌟 <b>طالع:</b> ${fal.omen}\n`;
+      if (fal.luckyColor) {
+        post += `🎨 <b>رنگ شانس:</b> ${fal.luckyColor} | 🔢 <b>عدد شانس:</b> ${fal.luckyNumber}\n`;
+      }
+      const cleanSig = sig.startsWith('@') ? sig : `@${sig}`;
+      post += `\n━━━━━━━━━━━━━━━━━━━━\n📢 <b>کانال تلگرام:</b> <a href="https://t.me/${cleanSig.replace('@','') }">${cleanSig}</a>`;
+      return post;
+    }
+
+    async function sendPostToTelegram(text) {
+      let channel = currentConfig.channelId.trim();
+      if (!channel.startsWith('@') && !channel.startsWith('-100')) channel = `@${channel}`;
+      return await callTelegram('sendMessage', {
+        chat_id: channel,
+        text: text,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true
+      });
+    }
+
+    async function sendInstantTestPost() {
+      const btn = document.getElementById('header-test-btn');
+      btn.innerText = '⏳ در حال ارسال...';
+      try {
+        const text = formatFalPost(currentFal, currentConfig.signature);
+        const res = await sendPostToTelegram(text);
+        if (res.ok) {
+          addLog('موفق ✅', currentFal.title, res.result.message_id);
+          showToast(`🎉 فال با موفقیت در کانال ${currentConfig.channelId} منتشر شد!`);
+        } else {
+          throw new Error(res.description);
+        }
+      } catch (err) {
+        addLog('خطا ❌', err.message);
+        showToast(`خطای تلگرام: ${err.message}`, 'error');
+      } finally {
+        btn.innerText = '🚀 ارسال تست آنی فال';
+      }
+    }
+
+    /* =========================================================
+       4. BACKGROUND SCHEDULER ENGINE
+       ========================================================= */
+    function checkSchedules() {
+      const now = new Date();
+      // Format time in configured timezone
+      let currentHoursMinutes = '';
+      try {
+        const parts = new Intl.DateTimeFormat('en-US', {
+          timeZone: currentConfig.timeZone,
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        }).format(now);
+        currentHoursMinutes = parts.trim();
+      } catch {
+        currentHoursMinutes = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      }
+
+      schedules.forEach(async (sched) => {
+        if (!sched.isActive) return;
+        if (sched.time === currentHoursMinutes) {
+          const lastRunKey = `last_run_${sched.id}`;
+          const currentMinuteStr = now.toISOString().slice(0, 16);
+          if (localStorage.getItem(lastRunKey) !== currentMinuteStr) {
+            localStorage.setItem(lastRunKey, currentMinuteStr);
+            // Trigger post
+            const randomItem = FAL_DATABASE[Math.floor(Math.random() * FAL_DATABASE.length)];
+            const text = formatFalPost(randomItem, currentConfig.signature);
+            try {
+              const res = await sendPostToTelegram(text);
+              if (res.ok) {
+                addLog(`خودکار (${sched.title}) ✅`, randomItem.title, res.result.message_id);
+              }
+            } catch (err) {
+              addLog(`خطای زمانبندی ❌`, err.message);
+            }
+          }
+        }
+      });
+    }
+    // Check every 30 seconds
+    setInterval(checkSchedules, 30000);
+
+    /* =========================================================
+       5. UI CONTROLLERS & RENDERING
+       ========================================================= */
+    function switchTab(tabId) {
+      ['setup', 'schedule', 'preview', 'logs', 'python'].forEach(t => {
+        document.getElementById(`tab-content-${t}`).classList.add('hidden');
+        const b = document.getElementById(`tab-btn-${t}`);
+        b.className = 'tab-btn px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap text-slate-600 dark:text-slate-300 hover:bg-sky-50/70 dark:hover:bg-slate-800';
+      });
+      document.getElementById(`tab-content-${tabId}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+      activeBtn.className = 'tab-btn px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap bg-sky-500 text-white shadow-xs';
+    }
+
+    function toggleDarkMode() {
+      const html = document.documentElement;
+      const isDark = html.classList.toggle('dark');
+      localStorage.setItem('tg_theme', isDark ? 'dark' : 'light');
+      document.getElementById('dark-mode-icon').innerText = isDark ? '☀️' : '🌙';
+      document.getElementById('dark-mode-text').innerText = isDark ? 'حالت روز' : 'حالت شب';
+    }
+
+    function toggleSetupGuide() {
+      document.getElementById('setup-guide').classList.toggle('hidden');
+    }
+
+    function toggleTokenVisibility() {
+      const input = document.getElementById('input-bot-token');
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function saveConfigFromInputs() {
+      currentConfig.botToken = document.getElementById('input-bot-token').value;
+      currentConfig.channelId = document.getElementById('input-channel-id').value;
+      currentConfig.signature = document.getElementById('input-signature').value;
+      currentConfig.timeZone = document.getElementById('select-timezone').value;
+
+      localStorage.setItem('tg_bot_token', currentConfig.botToken);
+      localStorage.setItem('tg_channel_id', currentConfig.channelId);
+      localStorage.setItem('tg_signature', currentConfig.signature);
+      localStorage.setItem('tg_timezone', currentConfig.timeZone);
+
+      document.getElementById('header-channel-id').innerText = currentConfig.channelId;
+    }
+
+    function renderSchedules() {
+      const list = document.getElementById('schedule-list');
+      list.innerHTML = '';
+      if (schedules.length === 0) {
+        list.innerHTML = '<div class="p-6 text-center text-slate-400 text-xs">هیچ زمانبندی فعالی ثبت نشده است.</div>';
+        return;
+      }
+      schedules.forEach((s, idx) => {
+        const item = document.createElement('div');
+        item.className = 'p-4 flex items-center justify-between gap-4 text-xs';
+        item.innerHTML = `
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-800 dark:text-slate-100">${s.title}</span>
+              <span class="px-2 py-0.5 rounded-full font-bold ${s.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}">${s.isActive ? 'فعال' : 'غیرفعال'}</span>
+            </div>
+            <div class="text-slate-500 font-mono mt-1">ساعت: ${s.time} | نوع: ${s.type}</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="toggleScheduleActive(${idx})" class="px-3 py-1 rounded-lg border text-xs font-semibold cursor-pointer">${s.isActive ? 'توقف' : 'فعال‌سازی'}</button>
+            <button onclick="deleteSchedule(${idx})" class="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg cursor-pointer">🗑️</button>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+      document.getElementById('header-active-count').innerText = schedules.filter(s => s.isActive).length;
+    }
+
+    function toggleAddScheduleForm() {
+      document.getElementById('add-schedule-form').classList.toggle('hidden');
+    }
+
+    function onRecurrenceTypeChange() {
+      const type = document.getElementById('sched-input-type').value;
+      const dateCont = document.getElementById('sched-date-container');
+      if (type === 'once') dateCont.classList.remove('hidden');
+      else dateCont.classList.add('hidden');
+    }
+
+    function createNewSchedule() {
+      const title = document.getElementById('sched-input-title').value.trim() || 'زمانبندی فال';
+      const category = document.getElementById('sched-input-category').value;
+      const type = document.getElementById('sched-input-type').value;
+      const time = document.getElementById('sched-input-time').value;
+
+      schedules.push({ id: `s_${Date.now()}`, title, category, type, time, isActive: true });
+      localStorage.setItem('tg_schedules', JSON.stringify(schedules));
+      renderSchedules();
+      toggleAddScheduleForm();
+      showToast('زمانبندی جدید با موفقیت افزوده شد.');
+    }
+
+    function toggleScheduleActive(idx) {
+      schedules[idx].isActive = !schedules[idx].isActive;
+      localStorage.setItem('tg_schedules', JSON.stringify(schedules));
+      renderSchedules();
+    }
+
+    function deleteSchedule(idx) {
+      schedules.splice(idx, 1);
+      localStorage.setItem('tg_schedules', JSON.stringify(schedules));
+      renderSchedules();
+      showToast('زمانبندی حذف شد.');
+    }
+
+    function updatePreview() {
+      const content = document.getElementById('bubble-content');
+      document.getElementById('bubble-channel-title').innerText = `کانال ${currentConfig.channelId}`;
+      let html = `<div class="text-center font-bold text-sky-700 pb-1">✨ ${currentFal.title} ✨</div>`;
+      if (currentFal.poem) {
+        html += `<div class="p-2.5 rounded-xl bg-sky-50/70 text-slate-700 text-xs italic text-center space-y-1">`;
+        currentFal.poem.forEach(line => html += `<div>🔹 ${line}</div>`);
+        html += `</div>`;
+      }
+      html += `<div><b>🔮 تعبیر و فال:</b><p class="text-slate-600">${currentFal.interpretation}</p></div>`;
+      html += `<div><b>💡 پند و توصیه:</b><p class="text-slate-600">${currentFal.advice}</p></div>`;
+      html += `<div class="pt-2 text-center text-xs font-bold text-sky-600 border-t border-slate-200">📢 کانال تلگرام: ${currentConfig.signature}</div>`;
+      content.innerHTML = html;
+      document.getElementById('bubble-time').innerText = new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function generateRandomFal() {
+      currentFal = FAL_DATABASE[Math.floor(Math.random() * FAL_DATABASE.length)];
+      updatePreview();
+    }
+
+    function toggleBubbleTheme() {
+      bubbleDark = !bubbleDark;
+      const card = document.getElementById('bubble-card');
+      const canvas = document.getElementById('bubble-canvas');
+      if (bubbleDark) {
+        canvas.className = 'p-4 sm:p-8 bg-[#0f172a] transition-colors flex justify-center';
+        card.className = 'max-w-md w-full bg-[#1e293b] text-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-800 relative text-right';
+      } else {
+        canvas.className = 'p-4 sm:p-8 bg-[#e7ebf0] transition-colors flex justify-center';
+        card.className = 'max-w-md w-full bg-white text-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200/80 relative text-right';
+      }
+    }
+
+    function copyBubbleText() {
+      const text = formatFalPost(currentFal, currentConfig.signature);
+      navigator.clipboard.writeText(text);
+      showToast('متن فال در کلیپ‌بورد کپی شد!');
+    }
+
+    function addLog(status, preview, msgId) {
+      logs.unshift({
+        id: Date.now(),
+        time: new Date().toLocaleTimeString('fa-IR'),
+        status,
+        preview,
+        msgId
+      });
+      if (logs.length > 50) logs.pop();
+      localStorage.setItem('tg_logs', JSON.stringify(logs));
+      renderLogs();
+    }
+
+    function renderLogs() {
+      const cont = document.getElementById('logs-container');
+      cont.innerHTML = '';
+      if (logs.length === 0) {
+        cont.innerHTML = '<div class="p-6 text-center text-slate-400 text-xs">هنوز پیامی ارسال نشده است.</div>';
+        return;
+      }
+      logs.forEach(l => {
+        const item = document.createElement('div');
+        item.className = 'p-3 flex items-center justify-between text-xs';
+        item.innerHTML = `
+          <div>
+            <div class="font-bold text-slate-800 dark:text-slate-100">${l.status} — ${l.preview}</div>
+            ${l.msgId ? `<span class="text-[10px] text-slate-400 font-mono">Message ID: #${l.msgId}</span>` : ''}
+          </div>
+          <span class="text-slate-400 font-mono dir-ltr">${l.time}</span>
+        `;
+        cont.appendChild(item);
+      });
+    }
+
+    function clearLogs() {
+      logs = [];
+      localStorage.setItem('tg_logs', JSON.stringify(logs));
+      renderLogs();
+      showToast('لاگ‌ها پاک شدند.');
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const body = document.getElementById('toast-body');
+      document.getElementById('toast-msg').innerText = msg;
+      body.className = `flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-xl text-xs sm:text-sm font-semibold border ${
+        type === 'error' ? 'bg-rose-600 text-white border-rose-500' : 'bg-sky-600 text-white border-sky-500'
+      }`;
+      container.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+      setTimeout(hideToast, 4000);
+    }
+
+    function hideToast() {
+      document.getElementById('toast-container').classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+    }
+
+    function renderPythonCode() {
+      const token = currentConfig.botToken || 'YOUR_BOT_TOKEN_HERE';
+      const channel = currentConfig.channelId || '@freeapiai';
+      const sig = currentConfig.signature || '@freeapiai';
+      const code = `# -*- coding: utf-8 -*-
+"""
+ادمین هوشمند تلگرام (Pyrogram + Telegram Bot API)
+کاملاً ناهمگام (Async)
+"""
+import asyncio, aiohttp
+from pyrogram import Client, filters
+
+BOT_TOKEN = "${token}"
+CHANNEL_ID = "${channel}"
+API_ID = 1234567
+API_HASH = "your_api_hash"
+
+bot_receiver = Client("admin_session", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+
+async def send_fal_to_channel():
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": CHANNEL_ID,
+        "text": "✨ <b>فال روزانه</b> ✨\\n\\nیوسف گمگشته بازآید به کنعان غم مخور...\\n\\n📢 کانال: ${sig}",
+        "parse_mode": "HTML"
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=payload) as resp:
+            data = await resp.json()
+            print("ارسال شد:", data.get("ok"))
+
+async def main():
+    print("🚀 سامانه هوشمند تلگرام فعال شد.")
+    await bot_receiver.start()
+    while True:
+        await send_fal_to_channel()
+        await asyncio.sleep(3600 * 3) # هر ۳ ساعت
+
+if __name__ == "__main__":
+    asyncio.run(main())`;
+      document.getElementById('python-code-box').innerText = code;
+    }
+
+    function copyPythonCode() {
+      const code = document.getElementById('python-code-box').innerText;
+      navigator.clipboard.writeText(code);
+      showToast('کد پایتون کپی شد!');
+    }
+
+    /* Initialize */
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('input-bot-token').value = currentConfig.botToken;
+      document.getElementById('input-channel-id').value = currentConfig.channelId;
+      document.getElementById('input-signature').value = currentConfig.signature;
+      document.getElementById('select-timezone').value = currentConfig.timeZone;
+      document.getElementById('header-channel-id').innerText = currentConfig.channelId;
+
+      if (localStorage.getItem('tg_theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.getElementById('dark-mode-icon').innerText = '☀️';
+        document.getElementById('dark-mode-text').innerText = 'حالت روز';
+      }
+
+      renderSchedules();
+      updatePreview();
+      renderLogs();
+      renderPythonCode();
+    });
+  </script>
+</body>
+</html>

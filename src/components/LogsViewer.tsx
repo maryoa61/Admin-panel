@@ -5,8 +5,6 @@ import {
   XCircle, 
   Clock, 
   Trash2, 
-  ExternalLink,
-  Send,
   AlertCircle
 } from 'lucide-react';
 import { MessageLog } from '../types/telegram';
@@ -21,18 +19,18 @@ export const LogsViewer: React.FC<LogsViewerProps> = ({
   onClearLogs,
 }) => {
   return (
-    <div className="bg-white rounded-2xl border border-sky-100 shadow-xs overflow-hidden">
+    <div className="bg-white dark:bg-[#131f37] rounded-2xl border border-sky-100 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
       {/* Header */}
-      <div className="p-4 sm:p-5 border-b border-sky-100 bg-gradient-to-r from-sky-50/70 via-blue-50/40 to-transparent flex items-center justify-between gap-3">
+      <div className="p-4 sm:p-5 border-b border-sky-100 dark:border-slate-800 bg-gradient-to-r from-sky-50/70 via-blue-50/40 to-transparent dark:from-slate-800/60 dark:via-slate-800/20 dark:to-transparent flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center font-bold">
+          <div className="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold">
             <History className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm sm:text-base font-bold text-slate-800">
+            <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100">
               تاریخچه و گزارش ارسال‌ها
             </h3>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
               ثبت تمام درخواست‌های ارسال موفق و خطاهای احتمالی تلگرام
             </p>
           </div>
@@ -41,7 +39,7 @@ export const LogsViewer: React.FC<LogsViewerProps> = ({
         {logs.length > 0 && (
           <button
             onClick={onClearLogs}
-            className="flex items-center gap-1 text-xs text-slate-400 hover:text-rose-600 hover:bg-rose-50 px-2.5 py-1.5 rounded-lg transition-colors"
+            className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span>پاکسازی لاگ‌ها</span>
@@ -50,16 +48,16 @@ export const LogsViewer: React.FC<LogsViewerProps> = ({
       </div>
 
       {/* Logs Table / List */}
-      <div className="divide-y divide-sky-50">
+      <div className="divide-y divide-sky-50 dark:divide-slate-800/80">
         {logs.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 text-xs sm:text-sm">
+          <div className="p-8 text-center text-slate-400 dark:text-slate-500 text-xs sm:text-sm">
             هنوز پیامی ارسال نشده است. به محض ارسال اولین پست، گزارش آن در اینجا ثبت می‌شود.
           </div>
         ) : (
           logs.map((log) => (
             <div
               key={log.id}
-              className="p-3.5 sm:p-4 hover:bg-sky-50/30 transition-colors flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs"
+              className="p-3.5 sm:p-4 hover:bg-sky-50/30 dark:hover:bg-slate-800/40 transition-colors flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs"
             >
               <div className="flex items-start gap-3 flex-1 min-w-0">
                 {/* Status Icon */}
@@ -77,25 +75,25 @@ export const LogsViewer: React.FC<LogsViewerProps> = ({
 
                 <div className="space-y-1 min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-slate-800 text-xs sm:text-sm">
+                    <span className="font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-sm">
                       {log.falTitle}
                     </span>
-                    <span className="text-[11px] font-mono text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-100 dir-ltr">
+                    <span className="text-[11px] font-mono text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-slate-800 px-2 py-0.5 rounded border border-sky-100 dark:border-slate-700 dir-ltr">
                       {log.channelId}
                     </span>
                     {log.telegramMessageId && (
-                      <span className="text-[10px] text-slate-400 font-mono">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
                         ID: #{log.telegramMessageId}
                       </span>
                     )}
                   </div>
 
-                  <p className="text-slate-500 truncate text-[11px]">
+                  <p className="text-slate-500 dark:text-slate-400 truncate text-[11px]">
                     {log.messagePreview}
                   </p>
 
                   {log.errorMessage && (
-                    <p className="text-rose-500 text-[11px] flex items-center gap-1 font-medium bg-rose-50/60 p-1.5 rounded-lg border border-rose-100">
+                    <p className="text-rose-500 dark:text-rose-400 text-[11px] flex items-center gap-1 font-medium bg-rose-50/60 dark:bg-rose-950/40 p-1.5 rounded-lg border border-rose-100 dark:border-rose-900">
                       <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                       <span>{log.errorMessage}</span>
                     </p>
@@ -104,20 +102,20 @@ export const LogsViewer: React.FC<LogsViewerProps> = ({
               </div>
 
               {/* Timestamp & Status Badge */}
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end shrink-0 text-slate-400 font-mono text-[11px]">
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end shrink-0 text-slate-400 dark:text-slate-500 font-mono text-[11px]">
                 <span className="dir-ltr">{log.timestamp}</span>
                 {log.status === 'success' && (
-                  <span className="px-2 py-0.5 rounded-full font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                  <span className="px-2 py-0.5 rounded-full font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800">
                     ارسال شد
                   </span>
                 )}
                 {log.status === 'failed' && (
-                  <span className="px-2 py-0.5 rounded-full font-bold bg-rose-50 text-rose-700 border border-rose-200/60">
+                  <span className="px-2 py-0.5 rounded-full font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/60 dark:border-rose-800">
                     خطا
                   </span>
                 )}
                 {log.status === 'pending' && (
-                  <span className="px-2 py-0.5 rounded-full font-bold bg-amber-50 text-amber-700 border border-amber-200/60">
+                  <span className="px-2 py-0.5 rounded-full font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800">
                     در انتظار
                   </span>
                 )}

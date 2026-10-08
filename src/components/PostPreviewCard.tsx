@@ -70,18 +70,18 @@ export const PostPreviewCard: React.FC<PostPreviewCardProps> = ({
   const currentTime = new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <div className="bg-white rounded-2xl border border-sky-100 shadow-xs overflow-hidden flex flex-col">
+    <div className="bg-white dark:bg-[#131f37] rounded-2xl border border-sky-100 dark:border-slate-800 shadow-xs overflow-hidden flex flex-col transition-colors">
       {/* Header */}
-      <div className="p-4 sm:p-5 border-b border-sky-100 bg-gradient-to-r from-sky-50/70 via-blue-50/40 to-transparent flex flex-wrap items-center justify-between gap-3">
+      <div className="p-4 sm:p-5 border-b border-sky-100 dark:border-slate-800 bg-gradient-to-r from-sky-50/70 via-blue-50/40 to-transparent dark:from-slate-800/60 dark:via-slate-800/20 dark:to-transparent flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center font-bold">
+          <div className="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm sm:text-base font-bold text-slate-800">
+            <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100">
               پیش‌نمایش زنده پست تلگرام
             </h3>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
               طراحی مطابق حباب پیام تلگرام با امضای اختصاصی {cleanSignature}
             </p>
           </div>
@@ -93,7 +93,7 @@ export const PostPreviewCard: React.FC<PostPreviewCardProps> = ({
           <select
             value={selectedCat}
             onChange={(e) => handleCategoryChange(e.target.value as FalCategory)}
-            className="text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 font-medium text-slate-700 outline-none focus:border-sky-500"
+            className="text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 outline-none focus:border-sky-500"
           >
             <option value="all">🎲 فال تصادفی</option>
             <option value="hafez">📜 فال حافظ</option>
@@ -102,19 +102,19 @@ export const PostPreviewCard: React.FC<PostPreviewCardProps> = ({
             <option value="motivation">🔥 انگیزشی</option>
           </select>
 
-          {/* Telegram Dark/Light mode toggle */}
+          {/* Telegram Dark/Light mode toggle for the bubble preview */}
           <button
             onClick={() => setTelegramDark(!telegramDark)}
-            className="p-1.5 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-colors"
-            title={telegramDark ? 'نمایش تم روشن تلگرام' : 'نمایش تم تاریک تلگرام'}
+            className="p-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            title={telegramDark ? 'نمایش تم حباب روشن تلگرام' : 'نمایش تم حباب تاریک تلگرام'}
           >
-            {telegramDark ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-slate-600" />}
+            {telegramDark ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-slate-600 dark:text-slate-300" />}
           </button>
 
           {/* Refresh sample */}
           <button
             onClick={() => onRefreshSample(selectedCat)}
-            className="p-1.5 text-sky-600 hover:text-sky-800 hover:bg-sky-50 rounded-lg transition-colors"
+            className="p-1.5 text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-300 hover:bg-sky-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
             title="تولید یک فال دیگر"
           >
             <RefreshCw className="w-4 h-4" />
@@ -255,10 +255,10 @@ export const PostPreviewCard: React.FC<PostPreviewCardProps> = ({
       </div>
 
       {/* Action Footer */}
-      <div className="p-4 bg-sky-50/40 border-t border-sky-100 flex flex-wrap items-center justify-between gap-3">
+      <div className="p-4 bg-sky-50/40 dark:bg-slate-900/60 border-t border-sky-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl transition-colors"
+          className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-xl transition-colors cursor-pointer"
         >
           {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
           <span>{copied ? 'کپی شد!' : 'کپی متن پیام'}</span>
@@ -267,10 +267,10 @@ export const PostPreviewCard: React.FC<PostPreviewCardProps> = ({
         <button
           onClick={onSendInstant}
           disabled={sending || !isConnected}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white transition-all shadow-xs ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white transition-all shadow-xs cursor-pointer ${
             isConnected
               ? 'bg-sky-600 hover:bg-sky-700 active:scale-95 shadow-sky-600/20'
-              : 'bg-slate-300 text-slate-500 cursor-not-allowed'
+              : 'bg-slate-300 dark:bg-slate-800 text-slate-500 dark:text-slate-600 cursor-not-allowed border border-transparent dark:border-slate-700'
           }`}
         >
           <Send className={`w-4 h-4 ${sending ? 'animate-spin' : ''}`} />
